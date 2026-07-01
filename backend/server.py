@@ -1089,6 +1089,7 @@ async def get_coverage():
                 coverage[sk] = {"_section": {"status": "not_started", "lectures": 0, "notes": False, "updated_at": None}}
         doc = {"id": "singleton", "coverage": coverage}
         await coll.insert_one(doc)
+        doc.pop("_id", None)
     return doc
 
 

@@ -6,7 +6,7 @@ import Timer from "../components/Timer";
 import { PRACTICE_MODES, DIFFICULTIES, QUESTION_COUNTS, SECTIONS } from "../lib/constants";
 import { formatTime } from "../lib/utils";
 import {
-  Timer as TimerIcon, ArrowRight, ArrowLeft, CheckCircle, XCircle,
+  ArrowRight, ArrowLeft, CheckCircle, XCircle,
   Bookmark, Zap, BarChart3, Clock, Target
 } from "lucide-react";
 
