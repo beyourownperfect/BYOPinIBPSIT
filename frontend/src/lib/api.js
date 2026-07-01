@@ -53,3 +53,8 @@ export const settingsApi = {
   get: () => client.get("/settings").then((r) => r.data),
   update: (data) => client.put("/settings", data).then((r) => r.data),
 };
+
+export const seedApi = {
+  seed: () => client.post("/seed").then((r) => r.data),
+  clear: () => client.post("/clear").then((r) => r.data),
+};

@@ -772,6 +772,36 @@ async def create_mock(data: MockTestIn):
     return doc
 
 
+@app.get("/api/ibps/mocks/results")
+async def list_mock_results(source: str | None = Query(None)):
+    coll = (await get_db()).mock_attempts
+    filt = {"status": "completed"}
+    if source and source != "all":
+        filt["source"] = source
+    docs = await coll.find(filt, {"_id": 0}).sort("completed_at", -1).to_list(100)
+    return {"items": docs}
+
+
+@app.post("/api/ibps/mocks/external")
+async def log_external_mock(data: ExternalMockIn):
+    coll = (await get_db()).mock_attempts
+    doc = {
+        "id": utils.new_id(),
+        "source": "external",
+        "source_name": data.source_name,
+        "phase": data.phase,
+        "sections": data.sections,
+        "overall": data.overall,
+        "taken_at": data.taken_at,
+        "status": "completed",
+        "completed_at": utils.now_iso(),
+        "created_at": utils.now_iso(),
+    }
+    await coll.insert_one(doc)
+    doc.pop("_id", None)
+    return doc
+
+
 @app.get("/api/ibps/mocks/{mid}")
 async def get_mock(mid: str):
     doc = await (await get_db()).mock_tests.find_one({"id": mid}, {"_id": 0})
@@ -1042,37 +1072,6 @@ async def get_mock_result(mid: str):
         order = attempt.get("section_order", [])
         attempt["sections"] = [attempt["sections"].get(k, {}) for k in order]
     return attempt
-
-
-@app.get("/api/ibps/mocks/results")
-async def list_mock_results(source: str | None = Query(None)):
-    coll = (await get_db()).mock_attempts
-    filt = {"status": "completed"}
-    if source and source != "all":
-        filt["source"] = source
-    docs = await coll.find(filt, {"_id": 0}).sort("completed_at", -1).to_list(100)
-    return {"items": docs}
-
-
-@app.post("/api/ibps/mocks/external")
-async def log_external_mock(data: ExternalMockIn):
-    coll = (await get_db()).mock_attempts
-    doc = {
-        "id": utils.new_id(),
-        "source": "external",
-        "source_name": data.source_name,
-        "phase": data.phase,
-        "sections": data.sections,
-        "overall": data.overall,
-        "taken_at": data.taken_at,
-        "status": "completed",
-        "completed_at": utils.now_iso(),
-        "created_at": utils.now_iso(),
-    }
-    await coll.insert_one(doc)
-    doc.pop("_id", None)
-    return doc
-
 
 # -- Coverage ---------------------------------------------------------------
 
@@ -1411,6 +1410,15 @@ async def seed_data():
     db_conn = await get_db()
     count = await seed_database(database=db_conn)
     return {"seeded": count, "message": f"Seeded {count} questions"}
+
+
+@app.post("/api/ibps/clear")
+async def clear_data():
+    """Remove all questions, attempts, mocks, and coverage data."""
+    db = await get_db()
+    for coll_name in ["questions", "attempts", "mock_tests", "mock_attempts", "topic_coverage"]:
+        await db[coll_name].delete_many({})
+    return {"cleared": True, "message": "All data removed"}
 
 
 # -- Health -----------------------------------------------------------------

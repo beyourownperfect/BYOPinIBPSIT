@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { analyticsApi, settingsApi, coverageApi } from "../lib/api";
+import { analyticsApi, settingsApi, coverageApi, seedApi } from "../lib/api";
 import { Card, CardTitle, Button } from "../components/ui";
 import { getDaysUntil } from "../lib/utils";
 import { SECTIONS, PK_TOPICS } from "../lib/constants";
@@ -143,6 +143,7 @@ function SyllabusPanel({ sectionKey }) {
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [expandedSection, setExpandedSection] = useState(null);
   const { data: dashboard, isLoading } = useQuery({
     queryKey: ["dashboard"],
@@ -152,6 +153,23 @@ export default function Dashboard() {
   const { data: settings } = useQuery({
     queryKey: ["settings"],
     queryFn: settingsApi.get,
+  });
+
+  const seedMutation = useMutation({
+    mutationFn: seedApi.seed,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["questions"] });
+    },
+  });
+
+  const clearMutation = useMutation({
+    mutationFn: seedApi.clear,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["questions"] });
+      queryClient.invalidateQueries({ queryKey: ["mock-results"] });
+    },
   });
 
   const daysLeft = settings?.exam_date ? getDaysUntil(settings.exam_date) : 47;
@@ -183,6 +201,25 @@ export default function Dashboard() {
           <Button onClick={() => navigate("/repository")}>Import CSV</Button>
           <Button variant="secondary" onClick={() => navigate("/mocks")}>Log External Mock</Button>
           <Button variant="secondary" onClick={() => navigate("/practice")}>Practice First Section</Button>
+        </div>
+        <div className="mt-6 pt-4 border-t-2 border-gray-200 dark:border-gray-800 flex gap-3 justify-center">
+          <Button
+            variant="secondary"
+            onClick={() => seedMutation.mutate()}
+            disabled={seedMutation.isPending}
+          >
+            {seedMutation.isPending ? "Seeding..." : "Import Sample Questions"}
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => {
+              if (confirm("Remove all questions and data?")) clearMutation.mutate();
+            }}
+            disabled={clearMutation.isPending}
+            className="text-red-500 hover:text-red-600"
+          >
+            {clearMutation.isPending ? "Clearing..." : "Clear All Data"}
+          </Button>
         </div>
       </Card>
     );
