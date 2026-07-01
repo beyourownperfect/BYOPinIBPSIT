@@ -256,7 +256,6 @@ function MockSession({ session, mockId, onSectionComplete, onFinish }) {
           handleSubmitSection();
           return 0;
         }
-        setTimeSpent((section.time_limit_sec || 1200) - prev + 1);
         return prev - 1;
       });
     }, 1000);

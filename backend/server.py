@@ -214,7 +214,10 @@ async def list_questions(
     coll = (await get_db()).questions
     filt = {}
     if section:
-        filt["section"] = section
+        if section == "pk":
+            filt["section"] = {"$in": PK_SUBJECTS}
+        else:
+            filt["section"] = section
     if subject:
         filt["subject"] = subject
     if topic:

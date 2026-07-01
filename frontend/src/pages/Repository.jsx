@@ -57,7 +57,7 @@ export default function Repository() {
   const questions = data?.items || [];
   const total = data?.total || 0;
   const sectionInfo = SECTIONS[section];
-  const isPk = sectionInfo?.type === "pk";
+  const isPk = section === "pk" || sectionInfo?.type === "pk";
   const hasTopics = sectionInfo?.has_topics;
   const topics = hasTopics && subject ? PK_TOPICS[subject] || PK_TOPICS[section] : [];
 

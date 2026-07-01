@@ -784,6 +784,77 @@ COA_QUESTIONS = [
 
 # ── Register all questions ────────────────────────────────────────────────
 
+# ── Infosec (3 questions) ──────────────────────────────────────────────────
+
+INFOSEC_QUESTIONS = [
+    {
+        "statement": "Which cryptographic technique uses a pair of public and private keys?",
+        "options": {"A": "Symmetric encryption", "B": "Asymmetric encryption", "C": "Hashing", "D": "Base64 encoding"},
+        "correct_answer": "B",
+        "explanation": "Asymmetric encryption uses a public key for encryption and a private key for decryption.",
+        "topic": "cryptography",
+        "difficulty": "easy",
+    },
+    {
+        "statement": "A **firewall** operates primarily at which OSI layers?",
+        "options": {"A": "Physical and Data Link", "B": "Network and Transport", "C": "Session and Presentation", "D": "Application only"},
+        "correct_answer": "B",
+        "explanation": "Firewalls filter traffic at the Network (Layer 3) and Transport (Layer 4) layers based on IP addresses and ports.",
+        "topic": "firewalls",
+        "difficulty": "medium",
+    },
+    {
+        "statement": "What is the primary purpose of **PKI** (Public Key Infrastructure)?",
+        "options": {"A": "Encrypting database contents", "B": "Managing digital certificates and public-key encryption", "C": "Preventing SQL injection", "D": "Monitoring network traffic"},
+        "correct_answer": "B",
+        "explanation": "PKI manages the creation, distribution, and revocation of digital certificates used in public-key cryptography.",
+        "topic": "pki_ssl_tls",
+        "difficulty": "medium",
+    },
+]
+
+# ── Web Tech (2 questions) ─────────────────────────────────────────────────
+
+WEBTECH_QUESTIONS = [
+    {
+        "statement": "Which HTTP method is used to submit form data to a server?",
+        "options": {"A": "GET", "B": "POST", "C": "PUT", "D": "DELETE"},
+        "correct_answer": "B",
+        "explanation": "POST sends data in the request body and is the standard method for form submissions.",
+        "topic": "http",
+        "difficulty": "easy",
+    },
+    {
+        "statement": "What does **REST** stand for in API design?",
+        "options": {"A": "Remote Execution Service Technology", "B": "Representational State Transfer", "C": "Request-Response State Table", "D": "Reliable Endpoint System Transfer"},
+        "correct_answer": "B",
+        "explanation": "REST (Representational State Transfer) is an architectural style for designing networked applications.",
+        "topic": "rest_apis",
+        "difficulty": "easy",
+    },
+]
+
+# ── Cloud (2 questions) ────────────────────────────────────────────────────
+
+CLOUD_QUESTIONS = [
+    {
+        "statement": "Which cloud service model provides virtualized computing resources over the internet?",
+        "options": {"A": "SaaS", "B": "PaaS", "C": "IaaS", "D": "FaaS"},
+        "correct_answer": "C",
+        "explanation": "IaaS (Infrastructure as a Service) provides virtualized computing resources such as VMs, storage, and networks.",
+        "topic": "cloud_computing",
+        "difficulty": "easy",
+    },
+    {
+        "statement": "Which technology allows multiple virtual machines to run on a single physical host?",
+        "options": {"A": "Containerization", "B": "Virtualization", "C": "Orchestration", "D": "Clustering"},
+        "correct_answer": "B",
+        "explanation": "Virtualization abstracts physical hardware, allowing multiple VMs with their own operating systems to share the same physical host.",
+        "topic": "virtualization",
+        "difficulty": "easy",
+    },
+]
+
 QUESTIONS_BY_SECTION = {
     "english": (ENGLISH_QUESTIONS, None, "easy"),
     "reasoning": (REASONING_QUESTIONS, None, "easy"),
@@ -794,9 +865,9 @@ QUESTIONS_BY_SECTION = {
     "pds": (PDS_QUESTIONS, "pds", "medium"),
     "se": (SE_QUESTIONS, "se", "medium"),
     "coa": (COA_QUESTIONS, "coa", "medium"),
-    "infosec": ([], "infosec", "medium"),
-    "webtech": ([], "webtech", "medium"),
-    "cloud": ([], "cloud", "medium"),
+    "infosec": (INFOSEC_QUESTIONS, "infosec", "medium"),
+    "webtech": (WEBTECH_QUESTIONS, "webtech", "medium"),
+    "cloud": (CLOUD_QUESTIONS, "cloud", "medium"),
 }
 
 
