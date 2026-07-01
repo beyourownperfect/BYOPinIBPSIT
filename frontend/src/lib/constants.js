@@ -9,10 +9,12 @@ export const SECTIONS = {
   dbms: { label: "Database Management Systems", type: "pk", has_topics: true },
   cn: { label: "Computer Networks", type: "pk", has_topics: true },
   os: { label: "Operating Systems", type: "pk", has_topics: true },
+  pds: { label: "Programming & Data Structures", type: "pk", has_topics: true },
   se: { label: "Software Engineering", type: "pk", has_topics: true },
-  ds: { label: "Data Structures", type: "pk", has_topics: true },
+  infosec: { label: "Information Security", type: "pk", has_topics: true },
+  webtech: { label: "Web Technologies", type: "pk", has_topics: true },
   coa: { label: "Computer Organization & Architecture", type: "pk", has_topics: true },
-  oops: { label: "Object-Oriented Programming", type: "pk", has_topics: true },
+  cloud: { label: "Cloud & Emerging Technologies", type: "pk", has_topics: true },
 };
 
 export const PK_SUBJECTS = Object.entries(SECTIONS)
@@ -30,32 +32,44 @@ export const PRACTICE_MODES = [
 
 export const PK_TOPICS = {
   dbms: [
-    "er_diagram", "relational_model", "sql", "normalization",
-    "transactions", "concurrency_control", "indexing", "file_organization",
+    "dbms_fundamentals", "er_relational_model", "sql", "normalization",
+    "transactions_acid", "concurrency_control", "indexing", "nosql",
   ],
   cn: [
-    "osi_model", "tcp_ip", "routing", "ip_addressing",
-    "data_link_layer", "network_security", "application_layer",
+    "network_fundamentals", "osi_tcp_ip", "ip_addressing_subnetting",
+    "routing_switching", "internet_protocols", "network_devices",
+    "network_security_basics",
   ],
   os: [
-    "process_management", "cpu_scheduling", "memory_management",
-    "file_systems", "deadlocks", "synchronization",
+    "process_management", "cpu_scheduling", "threads_synchronization",
+    "deadlocks", "memory_management", "virtual_memory",
+    "file_systems", "io_management",
+  ],
+  pds: [
+    "c_programming", "oop", "arrays_strings", "linked_lists",
+    "stacks_queues", "trees", "graphs", "hashing",
+    "searching_sorting", "algorithm_complexity",
   ],
   se: [
-    "sdlc", "agile", "requirements", "design",
-    "testing", "maintenance", "project_management",
+    "sdlc", "agile_waterfall", "requirements", "software_design",
+    "testing", "project_management", "software_quality",
   ],
-  ds: [
-    "arrays", "linked_lists", "stacks_queues", "trees",
-    "graphs", "sorting", "searching", "hashing",
+  infosec: [
+    "cryptography", "authentication_authorization", "pki_ssl_tls",
+    "firewalls", "ids_ips", "banking_security",
+  ],
+  webtech: [
+    "html", "css", "javascript", "client_server_architecture",
+    "http", "rest_apis", "json_xml", "web_security",
   ],
   coa: [
     "number_systems", "boolean_algebra", "cpu_organization",
-    "memory_organization", "io_organization", "pipelines",
+    "memory_hierarchy", "cache", "pipelining", "io_organization",
   ],
-  oops: [
-    "classes_objects", "inheritance", "polymorphism",
-    "encapsulation", "abstraction", "uml",
+  cloud: [
+    "cloud_computing", "virtualization", "containers",
+    "cloud_providers_basics", "artificial_intelligence",
+    "machine_learning", "blockchain", "iot", "banking_technology",
   ],
 };
 

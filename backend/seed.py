@@ -580,9 +580,9 @@ SE_QUESTIONS = [
     },
 ]
 
-# ── DS (12 questions) ─────────────────────────────────────────────────────
+# ── PDS (Programming & Data Structures — 16 questions) ─────────────────────
 
-DS_QUESTIONS = [
+PDS_QUESTIONS = [
     {
         "statement": "Which data structure operates on the LIFO (Last In, First Out) principle?",
         "options": {"A": "Queue", "B": "Stack", "C": "Tree", "D": "Graph"},
@@ -596,7 +596,7 @@ DS_QUESTIONS = [
         "options": {"A": "O(n)", "B": "O(log n)", "C": "O(n log n)", "D": "O(n²)"},
         "correct_answer": "B",
         "explanation": "Binary search divides the search space in half each step, giving O(log n) time complexity.",
-        "topic": "searching",
+        "topic": "searching_sorting",
         "difficulty": "easy",
     },
     {
@@ -620,7 +620,7 @@ DS_QUESTIONS = [
         "options": {"A": "Bubble Sort", "B": "Insertion Sort", "C": "Merge Sort", "D": "Selection Sort"},
         "correct_answer": "C",
         "explanation": "Merge Sort has O(n log n) average-case time complexity, better than O(n²) of Bubble, Insertion, and Selection sorts.",
-        "topic": "sorting",
+        "topic": "searching_sorting",
         "difficulty": "easy",
     },
     {
@@ -646,6 +646,70 @@ DS_QUESTIONS = [
         "explanation": "A complete binary tree of height h has between 2^h and 2^(h+1) - 1 nodes. Minimum is 2^h.",
         "topic": "trees",
         "difficulty": "hard",
+    },
+    {
+        "statement": "Which OOP principle allows a class to inherit properties from another class?",
+        "options": {"A": "Encapsulation", "B": "Inheritance", "C": "Polymorphism", "D": "Abstraction"},
+        "correct_answer": "B",
+        "explanation": "Inheritance allows a child class to acquire properties and methods of a parent class.",
+        "topic": "oop",
+        "difficulty": "easy",
+    },
+    {
+        "statement": "**Method overloading** is an example of:",
+        "options": {"A": "Compile-time polymorphism", "B": "Run-time polymorphism", "C": "Data hiding", "D": "Dynamic binding"},
+        "correct_answer": "A",
+        "explanation": "Method overloading resolves at compile time, making it compile-time polymorphism.",
+        "topic": "oop",
+        "difficulty": "easy",
+    },
+    {
+        "statement": "Which access specifier makes a member visible ONLY within the same class?",
+        "options": {"A": "public", "B": "private", "C": "protected", "D": "default"},
+        "correct_answer": "B",
+        "explanation": "Private members are accessible only within the same class.",
+        "topic": "oop",
+        "difficulty": "easy",
+    },
+    {
+        "statement": "A class with only pure virtual functions is called:",
+        "options": {"A": "Abstract class", "B": "Interface", "C": "Concrete class", "D": "Final class"},
+        "correct_answer": "B",
+        "explanation": "An interface is a class (or type) with only pure virtual (abstract) methods.",
+        "topic": "oop",
+        "difficulty": "medium",
+    },
+    {
+        "statement": "In UML, a **dashed arrow** with a hollow triangle head represents:",
+        "options": {"A": "Association", "B": "Inheritance", "C": "Interface realization", "D": "Dependency"},
+        "correct_answer": "C",
+        "explanation": "A dashed line with a hollow triangle arrowhead indicates interface realization (implementation).",
+        "topic": "oop",
+        "difficulty": "medium",
+    },
+    {
+        "statement": "Which keyword prevents a class from being inherited in Java?",
+        "options": {"A": "static", "B": "final", "C": "abstract", "D": "private"},
+        "correct_answer": "B",
+        "explanation": "The 'final' keyword in Java prevents inheritance of a class.",
+        "topic": "oop",
+        "difficulty": "easy",
+    },
+    {
+        "statement": "**Constructor chaining** refers to:",
+        "options": {"A": "Calling a constructor from another constructor", "B": "Creating multiple constructors in a class", "C": "A constructor that calls methods", "D": "A constructor with no body"},
+        "correct_answer": "A",
+        "explanation": "Constructor chaining means calling one constructor from another within the same class or through inheritance.",
+        "topic": "oop",
+        "difficulty": "medium",
+    },
+    {
+        "statement": "Which relationship is described by the phrase 'HAS-A'?",
+        "options": {"A": "Inheritance", "B": "Composition/Aggregation", "C": "Polymorphism", "D": "Encapsulation"},
+        "correct_answer": "B",
+        "explanation": "'HAS-A' represents composition or aggregation — one object contains another object.",
+        "topic": "oop",
+        "difficulty": "easy",
     },
 ]
 
@@ -718,75 +782,6 @@ COA_QUESTIONS = [
     },
 ]
 
-# ── OOPs (10 questions) ───────────────────────────────────────────────────
-
-OOPS_QUESTIONS = [
-    {
-        "statement": "Which OOP principle allows a class to inherit properties from another class?",
-        "options": {"A": "Encapsulation", "B": "Inheritance", "C": "Polymorphism", "D": "Abstraction"},
-        "correct_answer": "B",
-        "explanation": "Inheritance allows a child class to acquire properties and methods of a parent class.",
-        "topic": "inheritance",
-        "difficulty": "easy",
-    },
-    {
-        "statement": "**Method overloading** is an example of:",
-        "options": {"A": "Compile-time polymorphism", "B": "Run-time polymorphism", "C": "Data hiding", "D": "Dynamic binding"},
-        "correct_answer": "A",
-        "explanation": "Method overloading resolves at compile time, making it compile-time polymorphism.",
-        "topic": "polymorphism",
-        "difficulty": "easy",
-    },
-    {
-        "statement": "Which access specifier makes a member visible ONLY within the same class?",
-        "options": {"A": "public", "B": "private", "C": "protected", "D": "default"},
-        "correct_answer": "B",
-        "explanation": "Private members are accessible only within the same class.",
-        "topic": "encapsulation",
-        "difficulty": "easy",
-    },
-    {
-        "statement": "A class with only pure virtual functions is called:",
-        "options": {"A": "Abstract class", "B": "Interface", "C": "Concrete class", "D": "Final class"},
-        "correct_answer": "B",
-        "explanation": "An interface is a class (or type) with only pure virtual (abstract) methods.",
-        "topic": "abstraction",
-        "difficulty": "medium",
-    },
-    {
-        "statement": "In UML, a **dashed arrow** with a hollow triangle head represents:",
-        "options": {"A": "Association", "B": "Inheritance", "C": "Interface realization", "D": "Dependency"},
-        "correct_answer": "C",
-        "explanation": "A dashed line with a hollow triangle arrowhead indicates interface realization (implementation).",
-        "topic": "uml",
-        "difficulty": "medium",
-    },
-    {
-        "statement": "Which keyword prevents a class from being inherited in Java?",
-        "options": {"A": "static", "B": "final", "C": "abstract", "D": "private"},
-        "correct_answer": "B",
-        "explanation": "The 'final' keyword in Java prevents inheritance of a class.",
-        "topic": "inheritance",
-        "difficulty": "easy",
-    },
-    {
-        "statement": "**Constructor chaining** refers to:",
-        "options": {"A": "Calling a constructor from another constructor", "B": "Creating multiple constructors in a class", "C": "A constructor that calls methods", "D": "A constructor with no body"},
-        "correct_answer": "A",
-        "explanation": "Constructor chaining means calling one constructor from another within the same class or through inheritance.",
-        "topic": "classes_objects",
-        "difficulty": "medium",
-    },
-    {
-        "statement": "Which relationship is described by the phrase 'HAS-A'?",
-        "options": {"A": "Inheritance", "B": "Composition/Aggregation", "C": "Polymorphism", "D": "Encapsulation"},
-        "correct_answer": "B",
-        "explanation": "'HAS-A' represents composition or aggregation — one object contains another object.",
-        "topic": "uml",
-        "difficulty": "easy",
-    },
-]
-
 # ── Register all questions ────────────────────────────────────────────────
 
 QUESTIONS_BY_SECTION = {
@@ -796,10 +791,12 @@ QUESTIONS_BY_SECTION = {
     "dbms": (DBMS_QUESTIONS, "dbms", "medium"),
     "cn": (NETWORKING_QUESTIONS, "cn", "medium"),
     "os": (OS_QUESTIONS, "os", "medium"),
+    "pds": (PDS_QUESTIONS, "pds", "medium"),
     "se": (SE_QUESTIONS, "se", "medium"),
-    "ds": (DS_QUESTIONS, "ds", "medium"),
     "coa": (COA_QUESTIONS, "coa", "medium"),
-    "oops": (OOPS_QUESTIONS, "oops", "easy"),
+    "infosec": ([], "infosec", "medium"),
+    "webtech": ([], "webtech", "medium"),
+    "cloud": ([], "cloud", "medium"),
 }
 
 

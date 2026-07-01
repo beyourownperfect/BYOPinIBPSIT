@@ -123,7 +123,8 @@ class ExternalMockIn(BaseModel):
 
 
 class SettingsIn(BaseModel):
-    exam_date: str | None = None
+    exam_date_prelims: str | None = None
+    exam_date_mains: str | None = None
     daily_practice_target: int | None = None
     daily_mock_target: int | None = None
     daily_study_minutes_target: int | None = None
@@ -820,13 +821,13 @@ async def start_mock(mid: str):
     questions_coll = (await get_db()).questions
     attempt_id = utils.new_id()
     section_questions = {}
-    pk_subject_list = ["dbms", "cn", "os", "se", "ds", "coa", "oops"]
+    pk_subject_list = ["dbms", "cn", "os", "pds", "se", "infosec", "webtech", "coa", "cloud"]
 
     for section_conf in mock["sections"]:
         sk = section_conf["key"]
         count = section_conf["total_questions"]
 
-        # For Mains PK section, distribute across 7 PK subjects proportionally
+        # For Mains PK section, distribute across 9 PK subjects proportionally
         if mock.get("phase") == "mains" and sk == "dbms" and len(mock["sections"]) == 4:
             # Proportional stratified sampling across PK subjects
             pk_questions = []
@@ -836,7 +837,8 @@ async def start_mock(mid: str):
             })
             if total_pk_available > 0:
                 for subj, weight in [
-                    ("dbms", 10), ("cn", 8), ("os", 8), ("se", 6), ("ds", 7), ("coa", 6), ("oops", 5)
+                    ("dbms", 8), ("cn", 8), ("os", 7), ("pds", 7), ("se", 5),
+                    ("infosec", 5), ("webtech", 5), ("coa", 3), ("cloud", 2),
                 ]:
                     subj_count = max(1, round(count * weight / 50))
                     qs = await questions_coll.aggregate([
@@ -1156,9 +1158,8 @@ async def get_coverage_summary():
 
 @app.get("/api/ibps/analytics/dashboard")
 async def get_dashboard():
-    try:
-        db_conn = await get_db()
-        attempts_coll = db_conn.attempts
+    db_conn = await get_db()
+    attempts_coll = db_conn.attempts
     study_logs_coll = db_conn.study_logs
     mock_attempts_coll = db_conn.mock_attempts
 
@@ -1370,9 +1371,6 @@ async def get_dashboard():
         "weak_sections": [w["section"] for w in weak_sections],
         "daily_activity": [{"date": d["_id"], "minutes": d["minutes"], "questions": d["questions"]} for d in daily_activity],
     }
-    except Exception as e:
-        import traceback
-        return {"error": str(e), "traceback": traceback.format_exc()}
 
 
 # -- Settings ---------------------------------------------------------------
@@ -1384,7 +1382,8 @@ async def get_settings():
     if not doc:
         doc = {
             "id": "singleton",
-            "exam_date": config.EXAM_DATE_DEFAULT,
+            "exam_date_prelims": config.PRELIMS_DATE_DEFAULT,
+            "exam_date_mains": config.MAINS_DATE_DEFAULT,
             "daily_practice_target": 25,
             "daily_mock_target": 0,
             "daily_study_minutes_target": 120,
@@ -1392,6 +1391,12 @@ async def get_settings():
             "theme": "dark",
         }
         await coll.insert_one(doc)
+        return doc
+
+    # Migrate old exam_date -> exam_date_prelims
+    if "exam_date" in doc and "exam_date_prelims" not in doc:
+        doc["exam_date_prelims"] = doc.pop("exam_date")
+        await coll.update_one({"id": "singleton"}, {"$set": {"exam_date_prelims": doc["exam_date_prelims"]}, "$unset": {"exam_date": ""}})
     return doc
 
 

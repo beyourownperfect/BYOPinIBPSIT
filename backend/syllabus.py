@@ -7,42 +7,56 @@ SECTIONS = {
     "dbms": {"label": "Database Management Systems", "type": "pk", "has_topics": True},
     "cn": {"label": "Computer Networks", "type": "pk", "has_topics": True},
     "os": {"label": "Operating Systems", "type": "pk", "has_topics": True},
+    "pds": {"label": "Programming & Data Structures", "type": "pk", "has_topics": True},
     "se": {"label": "Software Engineering", "type": "pk", "has_topics": True},
-    "ds": {"label": "Data Structures", "type": "pk", "has_topics": True},
+    "infosec": {"label": "Information Security", "type": "pk", "has_topics": True},
+    "webtech": {"label": "Web Technologies", "type": "pk", "has_topics": True},
     "coa": {"label": "Computer Organization & Architecture", "type": "pk", "has_topics": True},
-    "oops": {"label": "Object-Oriented Programming", "type": "pk", "has_topics": True},
+    "cloud": {"label": "Cloud & Emerging Technologies", "type": "pk", "has_topics": True},
 }
 
 PK_SUBJECTS = [k for k, v in SECTIONS.items() if v["type"] == "pk"]
 
 PK_TOPICS = {
     "dbms": [
-        "er_diagram", "relational_model", "sql", "normalization",
-        "transactions", "concurrency_control", "indexing", "file_organization",
+        "dbms_fundamentals", "er_relational_model", "sql", "normalization",
+        "transactions_acid", "concurrency_control", "indexing", "nosql",
     ],
     "cn": [
-        "osi_model", "tcp_ip", "routing", "ip_addressing",
-        "data_link_layer", "network_security", "application_layer",
+        "network_fundamentals", "osi_tcp_ip", "ip_addressing_subnetting",
+        "routing_switching", "internet_protocols", "network_devices",
+        "network_security_basics",
     ],
     "os": [
-        "process_management", "cpu_scheduling", "memory_management",
-        "file_systems", "deadlocks", "synchronization",
+        "process_management", "cpu_scheduling", "threads_synchronization",
+        "deadlocks", "memory_management", "virtual_memory",
+        "file_systems", "io_management",
+    ],
+    "pds": [
+        "c_programming", "oop", "arrays_strings", "linked_lists",
+        "stacks_queues", "trees", "graphs", "hashing",
+        "searching_sorting", "algorithm_complexity",
     ],
     "se": [
-        "sdlc", "agile", "requirements", "design",
-        "testing", "maintenance", "project_management",
+        "sdlc", "agile_waterfall", "requirements", "software_design",
+        "testing", "project_management", "software_quality",
     ],
-    "ds": [
-        "arrays", "linked_lists", "stacks_queues", "trees",
-        "graphs", "sorting", "searching", "hashing",
+    "infosec": [
+        "cryptography", "authentication_authorization", "pki_ssl_tls",
+        "firewalls", "ids_ips", "banking_security",
+    ],
+    "webtech": [
+        "html", "css", "javascript", "client_server_architecture",
+        "http", "rest_apis", "json_xml", "web_security",
     ],
     "coa": [
         "number_systems", "boolean_algebra", "cpu_organization",
-        "memory_organization", "io_organization", "pipelines",
+        "memory_hierarchy", "cache", "pipelining", "io_organization",
     ],
-    "oops": [
-        "classes_objects", "inheritance", "polymorphism",
-        "encapsulation", "abstraction", "uml",
+    "cloud": [
+        "cloud_computing", "virtualization", "containers",
+        "cloud_providers_basics", "artificial_intelligence",
+        "machine_learning", "blockchain", "iot", "banking_technology",
     ],
 }
 
@@ -78,9 +92,10 @@ PHASES = {
     },
 }
 
-# Default PK distribution for Mains (50 PK questions across 7 subjects)
+# Default PK distribution for Mains (50 PK questions across 9 subjects)
 MAINS_PK_DISTRIBUTION = {
-    "dbms": 10, "cn": 8, "os": 8, "se": 6, "ds": 7, "coa": 6, "oops": 5,
+    "dbms": 8, "cn": 8, "os": 7, "pds": 7, "se": 5,
+    "infosec": 5, "webtech": 5, "coa": 3, "cloud": 2,
 }
 
 MARKS_CONFIG = {
