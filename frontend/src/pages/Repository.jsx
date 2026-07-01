@@ -57,9 +57,9 @@ export default function Repository() {
   const questions = data?.items || [];
   const total = data?.total || 0;
   const sectionInfo = SECTIONS[section];
-  const isPk = section === "pk" || sectionInfo?.type === "pk";
+  const isPk = sectionInfo?.type === "pk";
   const hasTopics = sectionInfo?.has_topics;
-  const topics = hasTopics && subject ? PK_TOPICS[subject] || PK_TOPICS[section] : [];
+  const topics = hasTopics ? PK_TOPICS[section] || [] : [];
 
   // Status chips config
   const statusChips = [
@@ -190,33 +190,16 @@ export default function Repository() {
       <div className="flex items-center gap-2 flex-wrap">
         <select
           value={section}
-          onChange={(e) => { setSection(e.target.value); setSubject(""); setTopic(""); setPage(1); }}
+          onChange={(e) => { setSection(e.target.value); setSubject(e.target.value || ""); setTopic(""); setPage(1); }}
           className="border-2 rounded-md px-2.5 py-1.5 text-sm bg-white dark:bg-gray-900"
         >
           <option value="">All Sections</option>
-          <option value="english">English</option>
-          <option value="reasoning">Reasoning</option>
-          <option value="quant">Quant</option>
-          <option value="pk">Professional Knowledge</option>
-          {PK_SUBJECTS.map((k) => (
-            <option key={k} value={k}>{SECTIONS[k]?.label}</option>
+          {Object.entries(SECTIONS).map(([k, v]) => (
+            <option key={k} value={k}>{v.label}</option>
           ))}
         </select>
 
-        {isPk && (
-          <select
-            value={subject}
-            onChange={(e) => { setSubject(e.target.value); setTopic(""); setPage(1); }}
-            className="border-2 rounded-md px-2.5 py-1.5 text-sm bg-white dark:bg-gray-900"
-          >
-            <option value="">All Subjects</option>
-            {PK_SUBJECTS.map((k) => (
-              <option key={k} value={k}>{SECTIONS[k]?.label}</option>
-            ))}
-          </select>
-        )}
-
-        {hasTopics && subject && topics.length > 0 && (
+        {hasTopics && section && topics.length > 0 && (
           <select
             value={topic}
             onChange={(e) => { setTopic(e.target.value); setPage(1); }}

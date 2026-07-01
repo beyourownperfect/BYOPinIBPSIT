@@ -1,9 +1,9 @@
 """IBPS SO (IT Officer) syllabus data — sections, topics, and phase configuration."""
 
 SECTIONS = {
-    "english": {"label": "English Language", "type": "non_pk", "has_topics": False},
-    "reasoning": {"label": "Reasoning", "type": "non_pk", "has_topics": False},
-    "quant": {"label": "Quantitative Aptitude", "type": "non_pk", "has_topics": False},
+    "english": {"label": "English Language", "type": "non_pk", "has_topics": True},
+    "reasoning": {"label": "Reasoning", "type": "non_pk", "has_topics": True},
+    "quant": {"label": "Quantitative Aptitude", "type": "non_pk", "has_topics": True},
     "dbms": {"label": "Database Management Systems", "type": "pk", "has_topics": True},
     "cn": {"label": "Computer Networks", "type": "pk", "has_topics": True},
     "os": {"label": "Operating Systems", "type": "pk", "has_topics": True},
@@ -18,6 +18,19 @@ SECTIONS = {
 PK_SUBJECTS = [k for k, v in SECTIONS.items() if v["type"] == "pk"]
 
 PK_TOPICS = {
+    "english": [
+        "reading_comprehension", "grammar_error_detection", "vocabulary",
+        "cloze_test_fillers", "para_jumbles_sentence_rearrangement",
+    ],
+    "reasoning": [
+        "puzzles_seating_arrangement", "logical_reasoning", "syllogism",
+        "coding_decoding", "inequalities", "blood_relations_direction_sense",
+        "ranking_ordering", "input_output", "data_sufficiency",
+    ],
+    "quant": [
+        "data_interpretation", "arithmetic", "algebra", "number_series",
+        "simplification_approximation", "quadratic_equations", "probability_permutation",
+    ],
     "dbms": [
         "dbms_fundamentals", "er_relational_model", "sql", "normalization",
         "transactions_acid", "concurrency_control", "indexing", "nosql",

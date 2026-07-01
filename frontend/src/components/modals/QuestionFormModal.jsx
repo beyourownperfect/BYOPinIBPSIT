@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { questionsApi } from "../../lib/api";
 import { Button } from "../ui";
-import { SECTIONS, PK_TOPICS, PK_SUBJECTS } from "../../lib/constants";
+import { SECTIONS, PK_TOPICS } from "../../lib/constants";
 import { X, AlertTriangle } from "lucide-react";
 
 const INITIAL_FORM = {
@@ -81,19 +81,17 @@ export default function QuestionFormModal({ open, onClose, editQuestion }) {
   if (!open) return null;
 
   const sectionInfo = SECTIONS[form.section];
-  const isPk = sectionInfo?.type === "pk";
   const hasTopics = sectionInfo?.has_topics;
-  const topics = hasTopics ? PK_TOPICS[form.section] : [];
+  const topics = hasTopics ? PK_TOPICS[form.section] || [] : [];
+  // Subject always mirrors section — no separate selection needed
+  const primaryLabel = sectionInfo?.type === "pk" ? "Subject" : "Section";
 
-  const autoMarks = form.section ? (isPk ? 2 : 1) : null;
+  const autoMarks = form.section ? (sectionInfo?.type === "pk" ? 2 : 1) : null;
 
   const handleChange = (field, value) => {
-    setForm((f) => ({ ...f, [field]: value }));
+    setForm((f) => ({ ...f, [field]: value, subject: field === "section" ? value : f.subject }));
     if (field === "section") {
-      setForm((f) => ({ ...f, subject: "", topic: "", marks: null }));
-    }
-    if (field === "subject") {
-      setForm((f) => ({ ...f, topic: "" }));
+      setForm((f) => ({ ...f, topic: "", marks: null, subject: value }));
     }
   };
 
@@ -105,7 +103,6 @@ export default function QuestionFormModal({ open, onClose, editQuestion }) {
       ...form,
       marks: form.marks ?? autoMarks,
       year: form.year || null,
-      subject: form.subject || form.section,
     };
 
     if (isEdit) {
@@ -120,7 +117,6 @@ export default function QuestionFormModal({ open, onClose, editQuestion }) {
       ...form,
       marks: form.marks ?? autoMarks,
       year: form.year || null,
-      subject: form.subject || form.section,
     };
     createForceMutation.mutate(payload);
   };
@@ -159,10 +155,10 @@ export default function QuestionFormModal({ open, onClose, editQuestion }) {
         )}
 
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
-          {/* Section + Subject + Topic row */}
-          <div className="grid grid-cols-3 gap-3">
+          {/* Section / Subject + Topic row — unified taxonomy */}
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-medium block mb-1">Section *</label>
+              <label className="text-xs font-medium block mb-1">{primaryLabel} *</label>
               <select
                 value={form.section}
                 onChange={(e) => handleChange("section", e.target.value)}
@@ -175,22 +171,7 @@ export default function QuestionFormModal({ open, onClose, editQuestion }) {
                 ))}
               </select>
             </div>
-            {isPk && (
-              <div>
-                <label className="text-xs font-medium block mb-1">Subject</label>
-                <select
-                  value={form.subject}
-                  onChange={(e) => handleChange("subject", e.target.value)}
-                  className="w-full border-2 rounded-md px-2 py-1.5 text-sm bg-white dark:bg-gray-900"
-                >
-                  <option value="">— Select —</option>
-                  {PK_SUBJECTS.map((k) => (
-                    <option key={k} value={k}>{SECTIONS[k]?.label}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-            {hasTopics && form.subject && (
+            {hasTopics && (
               <div>
                 <label className="text-xs font-medium block mb-1">Topic</label>
                 <select
@@ -199,7 +180,7 @@ export default function QuestionFormModal({ open, onClose, editQuestion }) {
                   className="w-full border-2 rounded-md px-2 py-1.5 text-sm bg-white dark:bg-gray-900"
                 >
                   <option value="">— Select —</option>
-                  {(PK_TOPICS[form.subject] || []).map((t) => (
+                  {topics.map((t) => (
                     <option key={t} value={t}>{t.replace(/_/g, " ")}</option>
                   ))}
                 </select>
