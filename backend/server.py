@@ -10,6 +10,7 @@ import os
 import random
 from datetime import date, timedelta, datetime, timezone
 from fastapi import FastAPI, HTTPException, Query, Body
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator
@@ -28,6 +29,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Global exception handler — return 500 errors as JSON with details
+@app.exception_handler(Exception)
+async def global_exception_handler(request, exc):
+    import traceback
+    return JSONResponse(
+        status_code=500,
+        content={"error": str(exc), "traceback": traceback.format_exc()},
+    )
+
 
 # ---------------------------------------------------------------------------
 # 2. Pydantic models

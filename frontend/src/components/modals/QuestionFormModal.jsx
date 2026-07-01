@@ -89,10 +89,14 @@ export default function QuestionFormModal({ open, onClose, editQuestion }) {
   const autoMarks = form.section ? (sectionInfo?.type === "pk" ? 2 : 1) : null;
 
   const handleChange = (field, value) => {
-    setForm((f) => ({ ...f, [field]: value, subject: field === "section" ? value : f.subject }));
-    if (field === "section") {
-      setForm((f) => ({ ...f, topic: "", marks: null, subject: value }));
-    }
+    setForm((f) => {
+      const next = { ...f, [field]: value, subject: field === "section" ? value : f.subject };
+      if (field === "section") {
+        next.topic = "";
+        next.marks = null;
+      }
+      return next;
+    });
   };
 
   const handleSubmit = (e) => {
