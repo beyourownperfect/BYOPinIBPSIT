@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { questionsApi } from "../../lib/api";
 import { Button } from "../ui";
 import { SECTIONS, PK_TOPICS } from "../../lib/constants";
-import { X, AlertTriangle } from "lucide-react";
+import { X, AlertTriangle, Sparkles, FileText, Clipboard, ChevronDown, ChevronRight } from "lucide-react";
 
 const INITIAL_FORM = {
   section: "",
@@ -123,6 +123,161 @@ export default function QuestionFormModal({ open, onClose, editQuestion }) {
 
   const isPending = createMutation.isPending || updateMutation.isPending || createForceMutation.isPending;
 
+  // ── Smart Entry ────────────────────────────────────────────────────────
+  const [smartText, setSmartText] = useState("");
+  const [smartOpen, setSmartOpen] = useState(!isEdit);
+
+  const parseInput = useCallback(() => {
+    const text = smartText.trim();
+    if (!text) return;
+
+    // Try JSON first
+    try {
+      const parsed = JSON.parse(text);
+      const result = {};
+      if (parsed.statement) result.statement = parsed.statement;
+      if (parsed.options) result.options = parsed.options;
+      if (parsed.correctOption) result.correct_answer = parsed.correctOption;
+      if (parsed.explanation) result.explanation = parsed.explanation;
+      if (result.statement || result.options) {
+        setForm((f) => ({
+          ...f,
+          ...(result.statement ? { statement: result.statement, subject: f.subject } : {}),
+          ...(result.options ? { options: { ...f.options, ...result.options } } : {}),
+          ...(result.correct_answer ? { correct_answer: result.correct_answer } : {}),
+          ...(result.explanation ? { explanation: result.explanation } : {}),
+        }));
+        return;
+      }
+    } catch {
+      // Not JSON — fall through to text parsing
+    }
+
+    // Text parsing: extract options, statement, answer, explanation
+    const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+    const opts = {};
+    let correctAnswer = "";
+    let explanation = "";
+    let statementLines = [];
+    let foundOptions = false;
+
+    const optionRegex = /^([A-Da-d])[.)\]\s]\s*(.+)/;
+    const numberOptionRegex = /^([1-4])[.)\]\s]\s*(.+)/;
+    const answerRegex = /^(?:answer|correct|ans|correct\s*answer|right)\s*[:.\-]\s*([A-Da-d1-4])/i;
+    const explanationRegex = /^(?:explanation|reason|why|note)\s*[:.\-]\s*/i;
+
+    for (const line of lines) {
+      // Check for answer indicator
+      const ansMatch = line.match(answerRegex);
+      if (ansMatch) {
+        const raw = ansMatch[1].toUpperCase();
+        correctAnswer = raw >= "1" && raw <= "4" ? String.fromCharCode(64 + parseInt(raw)) : raw;
+        continue;
+      }
+
+      // Check for explanation
+      if (explanationRegex.test(line)) {
+        explanation = line.replace(explanationRegex, "").trim();
+        continue;
+      }
+
+      // Check for option (A-D)
+      const optMatch = line.match(optionRegex);
+      if (optMatch) {
+        opts[optMatch[1].toUpperCase()] = optMatch[2].trim();
+        foundOptions = true;
+        continue;
+      }
+
+      // Check for numbered option (1-4)
+      const numMatch = line.match(numberOptionRegex);
+      if (numMatch) {
+        const letter = String.fromCharCode(64 + parseInt(numMatch[1]));
+        opts[letter] = numMatch[2].trim();
+        foundOptions = true;
+        continue;
+      }
+
+      // If we haven't found options yet, this is part of the statement
+      if (!foundOptions) {
+        // Remove common prefixes
+        const cleaned = line.replace(/^(?:question|q|stmt)[.:\s]*/i, "").replace(/^["""]|["""]$/g, "").trim();
+        if (cleaned) statementLines.push(cleaned);
+      }
+    }
+
+    const result = {};
+    if (statementLines.length > 0) result.statement = statementLines.join(" ");
+    if (Object.keys(opts).length >= 2) result.options = opts;
+    if (correctAnswer) result.correct_answer = correctAnswer;
+    if (explanation) result.explanation = explanation;
+
+    if (result.statement || result.options) {
+      setForm((f) => ({
+        ...f,
+        ...(result.statement ? { statement: result.statement } : {}),
+        ...(result.options ? { options: { ...f.options, ...result.options } } : {}),
+        ...(result.correct_answer ? { correct_answer: result.correct_answer } : {}),
+        ...(result.explanation ? { explanation: result.explanation } : {}),
+      }));
+    }
+  }, [smartText]);
+
+  const copyPrompt = useCallback((prompt) => {
+    navigator.clipboard.writeText(prompt).catch(() => {});
+  }, []);
+
+  const AI_PROMPT = `You are helping build a question bank for IBPS SO (IT Officer) exam preparation.
+
+Extract the question from the text below and return it as JSON using EXACTLY this schema:
+
+{
+  "statement": "The question text",
+  "options": {
+    "A": "Option A text",
+    "B": "Option B text",
+    "C": "Option C text",
+    "D": "Option D text"
+  },
+  "correctOption": "A",
+  "explanation": "Explanation if present, otherwise empty string"
+}
+
+Rules:
+- Put the full question text in "statement"
+- Fill all 4 options A through D
+- Set correctOption to the single correct letter (A, B, C, or D)
+- Include explanation only if the source has one
+- Return ONLY valid JSON, no markdown fences, no commentary
+
+Input:
+`;
+
+  const OCR_PROMPT = `You are extracting text from a screenshot of an IBPS SO (IT Officer) exam question.
+
+Extract and return as JSON using EXACTLY this schema:
+
+{
+  "statement": "The question text exactly as written",
+  "options": {
+    "A": "Option A",
+    "B": "Option B",
+    "C": "Option C",
+    "D": "Option D"
+  },
+  "correctOption": "A",
+  "explanation": "Explanation if visible, otherwise empty string"
+}
+
+Rules:
+- Transcribe the question text verbatim
+- Extract all 4 options exactly as written
+- Identify the correct answer if marked/indicated
+- Include explanation only if clearly visible
+- Ignore page numbers, headers, footers, branding, watermarks
+- Return ONLY valid JSON, no markdown fences, no commentary
+`;
+
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-8 pb-8">
       <div className="fixed inset-0 bg-black/50" onClick={onClose} />
@@ -155,6 +310,41 @@ export default function QuestionFormModal({ open, onClose, editQuestion }) {
         )}
 
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
+          {/* ── Smart Entry ─────────────────────────────────────────────── */}
+          {!isEdit && (
+            <div className="border-2 rounded-md overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setSmartOpen(!smartOpen)}
+                className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                {smartOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+                <Sparkles className="w-3.5 h-3.5 text-accent-500" />
+                Smart Entry — paste question text, Markdown, or JSON
+              </button>
+              {smartOpen && (
+                <div className="p-3 space-y-2">
+                  <textarea
+                    value={smartText}
+                    onChange={(e) => setSmartText(e.target.value)}
+                    className="w-full border-2 rounded-md px-3 py-2 text-sm min-h-[100px] bg-white dark:bg-gray-900 font-mono text-xs"
+                    placeholder={`Paste question text here...\n\nExamples:\n  JSON: {"statement":"...", "options":{"A":"...","B":"...","C":"...","D":"..."}, "correctOption":"A"}\n  Text: What is 2+2?\n        A) 3\n        B) 4\n        C) 5\n        D) 6\n        Answer: B`}
+                  />
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Button type="button" size="sm" onClick={parseInput}>
+                      <Sparkles className="w-3.5 h-3.5 mr-1" /> Parse
+                    </Button>
+                    <Button type="button" variant="ghost" size="sm" onClick={() => copyPrompt(AI_PROMPT + smartText)}>
+                      <Clipboard className="w-3.5 h-3.5 mr-1" /> Copy AI Prompt
+                    </Button>
+                    <Button type="button" variant="ghost" size="sm" onClick={() => copyPrompt(OCR_PROMPT)}>
+                      <FileText className="w-3.5 h-3.5 mr-1" /> Copy OCR Prompt
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
           {/* Section / Subject + Topic row — unified taxonomy */}
           <div className="grid grid-cols-2 gap-3">
             <div>
