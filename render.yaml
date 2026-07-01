@@ -1,0 +1,21 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: byop-studio-ibps
+    runtime: python
+    region: singapore
+    plan: free
+    buildCommand: |
+      cd frontend && npm ci && npm run build && cd .. && pip install -r backend/requirements.txt
+    startCommand: cd backend && uvicorn server:app --host=0.0.0.0 --port=$PORT
+    envVars:
+      - key: MONGO_URL
+        sync: false  # Set in Render dashboard
+      - key: DB_NAME
+        value: byopstudio_ibps
+      - key: MOCK_DB
+        value: "false"
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: PYTHON_VERSION
+        value: 3.11.0
