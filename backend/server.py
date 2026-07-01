@@ -1156,8 +1156,9 @@ async def get_coverage_summary():
 
 @app.get("/api/ibps/analytics/dashboard")
 async def get_dashboard():
-    db_conn = await get_db()
-    attempts_coll = db_conn.attempts
+    try:
+        db_conn = await get_db()
+        attempts_coll = db_conn.attempts
     study_logs_coll = db_conn.study_logs
     mock_attempts_coll = db_conn.mock_attempts
 
@@ -1369,6 +1370,9 @@ async def get_dashboard():
         "weak_sections": [w["section"] for w in weak_sections],
         "daily_activity": [{"date": d["_id"], "minutes": d["minutes"], "questions": d["questions"]} for d in daily_activity],
     }
+    except Exception as e:
+        import traceback
+        return {"error": str(e), "traceback": traceback.format_exc()}
 
 
 # -- Settings ---------------------------------------------------------------
