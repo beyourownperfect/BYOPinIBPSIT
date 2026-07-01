@@ -572,7 +572,7 @@ export default function Practice() {
         mode: config.mode,
         exclude_ids: excludedIds.join(","),
       }),
-    enabled: screen === "question" && !question && !isFetching,
+    enabled: screen === "question" && !question,
     retry: false,
     meta: { errorMessage: null },
   });
