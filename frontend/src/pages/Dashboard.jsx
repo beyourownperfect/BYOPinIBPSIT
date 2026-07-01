@@ -90,59 +90,17 @@ function SyllabusPanel({ sectionKey }) {
             updateMutation.mutate({
               section: sectionKey,
               topic: topicKey,
-              data: { status: next, lectures: topicData.lectures, notes: topicData.notes },
+              data: { status: next },
             });
           };
 
           return (
             <div key={topicKey} className="flex items-center gap-2 text-sm">
-              <button onClick={cycleStatus} className="p-0.5 hover:opacity-70">
+              <button onClick={cycleStatus} className="p-0.5 hover:opacity-70" title={`Click to cycle: ${statusLabels[statusCycle[topicData.status]]}`}>
                 <StatusIcon className={`w-4 h-4 ${color}`} />
               </button>
               <span className="flex-1">{topicKey === "_section" ? "Section Coverage" : topicKey.replace(/_/g, " ")}</span>
-              <span className={`text-[10px] font-medium ${color}`}>{statusLabels[topicData.status]}</span>
-
-              <div className="flex items-center gap-1 ml-2">
-                <button
-                  onClick={() =>
-                    updateMutation.mutate({
-                      section: sectionKey, topic: topicKey,
-                      data: { status: topicData.status, lectures: Math.max(0, (topicData.lectures || 0) - 1), notes: topicData.notes },
-                    })
-                  }
-                  className="px-1 text-xs text-gray-400 hover:text-gray-600"
-                >
-                  −
-                </button>
-                <span className="font-mono text-xs w-4 text-center">{topicData.lectures || 0}</span>
-                <button
-                  onClick={() =>
-                    updateMutation.mutate({
-                      section: sectionKey, topic: topicKey,
-                      data: { status: topicData.status, lectures: (topicData.lectures || 0) + 1, notes: topicData.notes },
-                    })
-                  }
-                  className="px-1 text-xs text-gray-400 hover:text-gray-600"
-                >
-                  +
-                </button>
-              </div>
-              <span className="text-[10px] text-gray-400 w-12">lectures</span>
-
-              <label className="flex items-center gap-1 text-xs text-gray-400 ml-1">
-                <input
-                  type="checkbox"
-                  checked={topicData.notes || false}
-                  onChange={() =>
-                    updateMutation.mutate({
-                      section: sectionKey, topic: topicKey,
-                      data: { status: topicData.status, lectures: topicData.lectures, notes: !topicData.notes },
-                    })
-                  }
-                  className="rounded w-3 h-3"
-                />
-                Notes
-              </label>
+              <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${color} bg-opacity-10`}>{statusLabels[topicData.status]}</span>
             </div>
           );
         })}

@@ -436,6 +436,11 @@ export default function Repository() {
       <QuestionDetailsModal
         questionId={detailsQuestionId}
         onClose={() => setDetailsQuestionId(null)}
+        onEdit={(q) => {
+          setDetailsQuestionId(null);
+          setEditQuestion(q);
+          setShowForm(true);
+        }}
       />
 
       {/* CSV Import Modal */}

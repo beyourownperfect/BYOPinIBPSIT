@@ -1,10 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { questionsApi } from "../../lib/api";
 import { Button, Badge } from "../ui";
-import { X, Star, CheckCircle, XCircle, Clock, Target, BarChart3 } from "lucide-react";
+import { X, Star, CheckCircle, XCircle, Clock, Target, BarChart3, Pencil } from "lucide-react";
 import { formatDate, formatTime } from "../../lib/utils";
 
-export default function QuestionDetailsModal({ questionId, onClose }) {
+export default function QuestionDetailsModal({ questionId, onClose, onEdit }) {
   const queryClient = useQueryClient();
 
   const { data: question, isLoading } = useQuery({
@@ -43,9 +43,16 @@ export default function QuestionDetailsModal({ questionId, onClose }) {
             <h2 className="text-lg font-bold">Question Details</h2>
             {question && <Badge variant={question.section}>{question.section}</Badge>}
           </div>
-          <button onClick={onClose} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded">
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            {question && onEdit && (
+              <Button size="sm" variant="secondary" onClick={() => onEdit(question)}>
+                <Pencil className="w-3.5 h-3.5 mr-1" /> Edit
+              </Button>
+            )}
+            <button onClick={onClose} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {isLoading ? (

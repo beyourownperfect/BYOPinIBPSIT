@@ -727,6 +727,175 @@ async def practice_complete(data: PracticeCompleteIn):
     return doc
 
 
+class PracticeAnswerIn(BaseModel):
+    question_id: str
+    selected_option: str | None = None
+    time_taken_sec: int = 0
+
+
+class PracticeBatchSubmitIn(BaseModel):
+    section: str
+    answers: list[PracticeAnswerIn]
+    practice_mode: str = "all"
+
+
+@app.get("/api/ibps/practice/questions")
+async def practice_questions(
+    section: str = Query(...),
+    mode: str = Query("all"),
+    count: int = Query(25, ge=1, le=100),
+    exclude_ids: str = Query(""),
+    difficulty: str | None = Query(None),
+):
+    """Return a batch of questions for a practice session."""
+    coll = (await get_db()).questions
+    attempts_coll = (await get_db()).attempts
+    excluded = exclude_ids.split(",") if exclude_ids else []
+
+    filt = {"section": section}
+    if difficulty and difficulty != "any":
+        filt["difficulty"] = difficulty
+
+    if mode == "new":
+        attempted = await attempts_coll.aggregate([
+            {"$match": {"section": section, "source": "practice"}},
+            {"$group": {"_id": "$question_id"}},
+        ]).to_list(None)
+        attempted_qids = {d["_id"] for d in attempted}
+        filt["id"] = {"$nin": list(attempted_qids | set(excluded))}
+    elif mode == "bookmarked":
+        filt["bookmarked"] = True
+    elif mode == "mistakes":
+        wrong_ids = await attempts_coll.aggregate([
+            {"$match": {"section": section, "source": "practice", "correct": False}},
+            {"$group": {"_id": "$question_id"}},
+        ]).to_list(None)
+        mistake_qids = [d["_id"] for d in wrong_ids if d["_id"] not in excluded]
+        filt["id"] = {"$in": mistake_qids} if mistake_qids else {"$in": []}
+    elif mode == "wrong":
+        latest_wrong = await attempts_coll.aggregate([
+            {"$match": {"section": section, "source": "practice"}},
+            {"$sort": {"created_at": -1}},
+            {"$group": {"_id": "$question_id", "correct": {"$first": "$correct"}}},
+            {"$match": {"correct": False}},
+        ]).to_list(None)
+        wrong_qids = [d["_id"] for d in latest_wrong if d["_id"] not in excluded]
+        filt["id"] = {"$in": wrong_qids} if wrong_qids else {"$in": []}
+    elif mode == "weak":
+        weak = await attempts_coll.aggregate([
+            {"$match": {"section": section, "source": "practice"}},
+            {"$group": {"_id": "$question_id", "total": {"$sum": 1}, "correct": {"$sum": {"$cond": ["$correct", 1, 0]}}}},
+            {"$match": {"total": {"$gte": 3}}},
+            {"$project": {"accuracy": {"$multiply": [{"$divide": ["$correct", "$total"]}, 100]}}},
+            {"$match": {"accuracy": {"$lt": 50.0}}},
+        ]).to_list(None)
+        weak_qids = [d["_id"] for d in weak if d["_id"] not in excluded]
+        filt["id"] = {"$in": weak_qids} if weak_qids else {"$in": []}
+    else:
+        if excluded:
+            filt["id"] = {"$nin": excluded}
+
+    cursor = coll.aggregate([
+        {"$match": filt},
+        {"$sample": {"size": count}},
+        {"$project": {"_id": 0}},
+    ])
+    questions = await cursor.to_list(count)
+    total_available = await coll.count_documents(filt)
+
+    for q in questions:
+        q["total_attempts"] = 0
+        q["correct_count"] = 0
+        q["wrong_count"] = 0
+        q["avg_time_sec"] = None
+
+    return {"questions": questions, "total": min(total_available, count)}
+
+
+@app.post("/api/ibps/practice/batch-submit")
+async def practice_batch_submit(data: PracticeBatchSubmitIn):
+    """Submit all answers from a completed practice session at once."""
+    coll = (await get_db()).questions
+    attempts_coll = (await get_db()).attempts
+    now = utils.now_iso()
+    results = []
+    total_marks = 0
+    total_penalty = 0.0
+    correct_count = 0
+    wrong_count = 0
+
+    for ans in data.answers:
+        question = await coll.find_one({"id": ans.question_id}, {"_id": 0})
+        if not question:
+            continue
+
+        is_correct = ans.selected_option == question["correct_answer"]
+        marks_earned = question["marks"] if is_correct else 0
+        penalty = 0.25 if ans.selected_option and not is_correct else 0
+
+        await attempts_coll.insert_one({
+            "id": utils.new_id(),
+            "question_id": ans.question_id,
+            "section": data.section,
+            "subject": question.get("subject", data.section),
+            "topic": question.get("topic"),
+            "correct": is_correct,
+            "selected_option": ans.selected_option,
+            "confidence": 3,
+            "time_taken_sec": ans.time_taken_sec,
+            "marks_earned": marks_earned,
+            "penalty": penalty,
+            "practice_mode": data.practice_mode,
+            "source": "practice",
+            "mock_attempt_id": None,
+            "created_at": now,
+        })
+
+        results.append({
+            "question_id": ans.question_id,
+            "correct": is_correct,
+            "correct_answer": question["correct_answer"],
+            "marks_earned": marks_earned,
+            "penalty": penalty,
+            "explanation": question.get("explanation", ""),
+        })
+        total_marks += marks_earned
+        total_penalty += penalty
+        if is_correct:
+            correct_count += 1
+        else:
+            wrong_count += 1
+
+    # Log study session
+    total_qs = correct_count + wrong_count
+    if total_qs > 0:
+        await (await get_db()).study_logs.insert_one({
+            "id": utils.new_id(),
+            "section": data.section,
+            "subject": data.section,
+            "activity": "practice",
+            "duration_min": max(1, round(sum(a.time_taken_sec for a in data.answers) / 60)),
+            "questions_attempted": total_qs,
+            "questions_correct": correct_count,
+            "questions_wrong": wrong_count,
+            "accuracy_pct": round((correct_count / total_qs) * 100, 1),
+            "date": date.today().isoformat(),
+            "created_at": now,
+        })
+
+    return {
+        "results": results,
+        "summary": {
+            "correct": correct_count,
+            "wrong": wrong_count,
+            "total_marks": total_marks,
+            "total_penalty": round(total_penalty, 2),
+            "net_score": round(total_marks - total_penalty, 2),
+            "total_questions": total_qs,
+        },
+    }
+
+
 # -- Mocks ------------------------------------------------------------------
 
 @app.get("/api/ibps/mocks")

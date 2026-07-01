@@ -23,6 +23,8 @@ export const questionsApi = {
 export const practiceApi = {
   next: (params) => client.get("/practice/next", { params }).then((r) => r.data),
   submit: (data) => client.post("/practice/submit", data).then((r) => r.data),
+  questions: (params) => client.get("/practice/questions", { params }).then((r) => r.data),
+  batchSubmit: (data) => client.post("/practice/batch-submit", data).then((r) => r.data),
 };
 
 export const mocksApi = {
