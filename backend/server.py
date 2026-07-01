@@ -1081,8 +1081,8 @@ async def get_mock_result(mid: str):
 async def get_coverage():
     coll = (await get_db()).topic_coverage
     doc = await coll.find_one({"id": "singleton"}, {"_id": 0})
+
     if not doc:
-        # Initialize with default coverage
         coverage = {}
         for sk, sv in SECTIONS.items():
             if sv["has_topics"]:
@@ -1091,7 +1091,28 @@ async def get_coverage():
                 coverage[sk] = {"_section": {"status": "not_started", "lectures": 0, "notes": False, "updated_at": None}}
         doc = {"id": "singleton", "coverage": coverage}
         await coll.insert_one(doc)
-        doc.pop("_id", None)
+        return doc
+
+    # Migrate existing doc: fill in missing sections and missing topics
+    coverage = dict(doc.get("coverage", {}))
+    needs_update = False
+    for sk, sv in SECTIONS.items():
+        if sk not in coverage:
+            needs_update = True
+            if sv["has_topics"]:
+                coverage[sk] = {t: {"status": "not_started", "lectures": 0, "notes": False, "updated_at": None} for t in PK_TOPICS.get(sk, [])}
+            else:
+                coverage[sk] = {"_section": {"status": "not_started", "lectures": 0, "notes": False, "updated_at": None}}
+        elif sv["has_topics"]:
+            for t in PK_TOPICS.get(sk, []):
+                if t not in coverage[sk]:
+                    needs_update = True
+                    coverage[sk][t] = {"status": "not_started", "lectures": 0, "notes": False, "updated_at": None}
+
+    if needs_update:
+        await coll.update_one({"id": "singleton"}, {"$set": {"coverage": coverage}})
+        doc["coverage"] = coverage
+
     return doc
 
 

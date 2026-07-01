@@ -38,7 +38,7 @@ function SectionRow({ section, onToggle, isExpanded }) {
 
 function SyllabusPanel({ sectionKey }) {
   const queryClient = useQueryClient();
-  const { data: coverage } = useQuery({
+  const { data: coverage, isLoading: coverageLoading } = useQuery({
     queryKey: ["coverage"],
     queryFn: coverageApi.get,
   });
@@ -60,6 +60,19 @@ function SyllabusPanel({ sectionKey }) {
   const statusColors = { "not_started": "text-gray-400", "studied": "text-amber-500", "revised": "text-green-500" };
   const statusIcons = { "not_started": Circle, "studied": RotateCcw, "revised": CheckCircle };
   const statusLabels = { "not_started": "Not Started", "studied": "Studied", "revised": "Revised" };
+
+  if (coverageLoading) {
+    return (
+      <div className="border-t-2 bg-gray-50 dark:bg-gray-800/30 px-4 py-3">
+        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-24 mb-2" />
+        <div className="space-y-2">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-5 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="border-t-2 bg-gray-50 dark:bg-gray-800/30 px-4 py-3">
@@ -219,12 +232,12 @@ export default function Dashboard() {
   const [expandedSection, setExpandedSection] = useState(null);
   const [showDateEditor, setShowDateEditor] = useState(false);
 
-  const { data: dashboard, isLoading } = useQuery({
+  const { data: dashboard, isLoading: isDashboardLoading } = useQuery({
     queryKey: ["dashboard"],
     queryFn: analyticsApi.dashboard,
   });
 
-  const { data: settings } = useQuery({
+  const { data: settings, isLoading: isSettingsLoading } = useQuery({
     queryKey: ["settings"],
     queryFn: settingsApi.get,
   });
@@ -269,7 +282,7 @@ export default function Dashboard() {
   const overview = dashboard?.overview;
   const hasData = overview && overview.total_questions_solved > 0;
 
-  if (isLoading) {
+  if (isDashboardLoading || isSettingsLoading) {
     return (
       <div className="space-y-4 animate-pulse">
         <div className="h-8 bg-gray-200 dark:bg-gray-800 rounded w-48" />
@@ -375,7 +388,7 @@ export default function Dashboard() {
               <Target className="w-8 h-8 text-blue-500" />
               <div>
                 <div className="text-2xl font-bold font-mono">
-                  {Math.floor(overview.total_study_minutes_this_week / 60)}h {overview.total_study_minutes_this_week % 60}m
+                  {Math.floor((overview.total_study_minutes_this_week ?? 0) / 60)}h {(overview.total_study_minutes_this_week ?? 0) % 60}m
                 </div>
                 <div className="text-xs text-gray-500">Study Time this week</div>
               </div>
