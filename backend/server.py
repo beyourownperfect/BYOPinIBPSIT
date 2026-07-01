@@ -69,9 +69,37 @@ class QuestionIn(BaseModel):
     @field_validator("topic")
     @classmethod
     def topic_must_exist(cls, v, info):
-        if v and info.data.get("section") in PK_TOPICS:
-            if v not in PK_TOPICS.get(info.data["section"], []):
-                raise ValueError(f"Invalid topic '{v}' for section '{info.data['section']}'")
+        section = (info.data or {}).get("section")
+        if v and section and section in PK_TOPICS:
+            valid_topics = PK_TOPICS.get(section, [])
+            if v not in valid_topics:
+                raise ValueError(f"Invalid topic '{v}' for section '{section}'")
+        return v
+
+    @field_validator("options")
+    @classmethod
+    def options_must_have_abcd(cls, v):
+        if not isinstance(v, dict):
+            raise ValueError("options must be a dict")
+        for k in ("A", "B", "C", "D"):
+            if k not in v:
+                raise ValueError(f"options must contain key '{k}'")
+        return v
+
+    @field_validator("difficulty")
+    @classmethod
+    def difficulty_must_be_valid(cls, v):
+        allowed = ("easy", "medium", "hard")
+        if v not in allowed:
+            raise ValueError(f"difficulty must be one of {allowed}")
+        return v
+
+    @field_validator("phase")
+    @classmethod
+    def phase_must_be_valid(cls, v):
+        allowed = ("prelims", "mains", "both")
+        if v not in allowed:
+            raise ValueError(f"phase must be one of {allowed}")
         return v
 
     @field_validator("correct_answer")

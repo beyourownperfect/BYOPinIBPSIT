@@ -30,7 +30,7 @@ export default function Repository() {
   if (subject) params.subject = subject;
   if (topic) params.topic = topic;
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: ["questions", params],
     queryFn: () => questionsApi.list(params),
   });
@@ -38,6 +38,7 @@ export default function Repository() {
   const deleteMutation = useMutation({
     mutationFn: questionsApi.remove,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["questions"] }),
+    onError: (err) => console.error("Delete failed:", err),
   });
 
   const bulkDeleteMutation = useMutation({
@@ -47,11 +48,13 @@ export default function Repository() {
       setSelected(new Set());
       setShowDeleteConfirm(false);
     },
+    onError: (err) => console.error("Bulk delete failed:", err),
   });
 
   const bookmarkMutation = useMutation({
     mutationFn: (qid) => fetch(`/api/ibps/questions/${qid}/bookmark`, { method: "POST" }).then(r => r.json()),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["questions"] }),
+    onError: (err) => console.error("Bookmark failed:", err),
   });
 
   const questions = data?.items || [];
@@ -150,6 +153,21 @@ export default function Repository() {
           <div key={i} className="h-12 bg-gray-200 dark:bg-gray-800 rounded" />
         ))}
       </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Card className="text-center py-12">
+        <AlertTriangle className="w-12 h-12 mx-auto mb-4 text-red-400" />
+        <h2 className="text-xl font-bold mb-2">Failed to load questions</h2>
+        <p className="text-gray-500 dark:text-gray-400 mb-2 text-sm">
+          {error?.response?.data?.error || error?.message || "An unknown error occurred"}
+        </p>
+        <Button onClick={() => queryClient.invalidateQueries({ queryKey: ["questions"] })}>
+          Retry
+        </Button>
+      </Card>
     );
   }
 

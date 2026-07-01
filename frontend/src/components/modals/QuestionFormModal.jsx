@@ -25,6 +25,7 @@ export default function QuestionFormModal({ open, onClose, editQuestion }) {
   const isEdit = !!editQuestion;
   const [form, setForm] = useState(INITIAL_FORM);
   const [duplicateWarning, setDuplicateWarning] = useState(null);
+  const [submitError, setSubmitError] = useState(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -48,7 +49,15 @@ export default function QuestionFormModal({ open, onClose, editQuestion }) {
       setForm(INITIAL_FORM);
     }
     setDuplicateWarning(null);
+    setSubmitError(null);
   }, [editQuestion, open]);
+
+  const onMutationError = useCallback((err) => {
+    const msg = err?.response?.data?.error || err?.message || "Request failed";
+    setSubmitError(msg);
+  }, []);
+
+  const clearError = useCallback(() => setSubmitError(null), []);
 
   const createMutation = useMutation({
     mutationFn: (data) => questionsApi.create(data),
@@ -60,6 +69,7 @@ export default function QuestionFormModal({ open, onClose, editQuestion }) {
       queryClient.invalidateQueries({ queryKey: ["questions"] });
       onClose();
     },
+    onError: onMutationError,
   });
 
   const createForceMutation = useMutation({
@@ -68,6 +78,7 @@ export default function QuestionFormModal({ open, onClose, editQuestion }) {
       queryClient.invalidateQueries({ queryKey: ["questions"] });
       onClose();
     },
+    onError: onMutationError,
   });
 
   const updateMutation = useMutation({
@@ -76,6 +87,7 @@ export default function QuestionFormModal({ open, onClose, editQuestion }) {
       queryClient.invalidateQueries({ queryKey: ["questions"] });
       onClose();
     },
+    onError: onMutationError,
   });
 
   if (!open) return null;
@@ -102,6 +114,7 @@ export default function QuestionFormModal({ open, onClose, editQuestion }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     setDuplicateWarning(null);
+    setSubmitError(null);
 
     const payload = {
       ...form,
@@ -293,6 +306,20 @@ Rules:
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        {/* Error banner */}
+        {submitError && (
+          <div className="mx-4 mt-4 p-3 border-2 border-red-500 bg-red-50 dark:bg-red-900/20 rounded-md flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+            <div className="text-sm flex-1">
+              <p className="font-medium">Failed to save question</p>
+              <p className="text-gray-600 dark:text-gray-400 mt-1 text-xs font-mono">{submitError}</p>
+            </div>
+            <button onClick={clearError} className="p-1 hover:bg-red-100 dark:hover:bg-red-900/40 rounded shrink-0">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
         {/* Duplicate warning */}
         {duplicateWarning && (

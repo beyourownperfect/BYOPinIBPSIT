@@ -7,7 +7,7 @@ import { PRACTICE_MODES, DIFFICULTIES, QUESTION_COUNTS, SECTIONS } from "../lib/
 import { formatTime } from "../lib/utils";
 import {
   ArrowRight, ArrowLeft, CheckCircle, XCircle,
-  Bookmark, Zap, BarChart3, Clock, Target
+  Bookmark, Zap, BarChart3, Clock, Target, AlertTriangle
 } from "lucide-react";
 
 /* ── Section Selector Screen ──────────────────────────────────────────── */
@@ -405,7 +405,7 @@ export default function Practice() {
   const startTimeRef = useRef(null);
 
   // Fetch batch of questions
-  const { isLoading: questionsLoading } = useQuery({
+  const { isLoading: questionsLoading, isError: questionsError, error: questionsErr } = useQuery({
     queryKey: ["practice-questions", config?.section, config?.mode, config?.count, config?.difficulty],
     queryFn: () =>
       practiceApi.questions({
@@ -435,6 +435,9 @@ export default function Practice() {
       // Record study log + invalidate dashboard
       setScreen("summary");
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+    },
+    onError: (err) => {
+      console.error("Practice submit failed:", err);
     },
   });
 
@@ -493,6 +496,24 @@ export default function Practice() {
         }}
         onDashboard={() => { window.location.href = "/dashboard"; }}
       />
+    );
+  }
+
+  // Error screen (questions failed to load)
+  if (screen === "session" && questionsError) {
+    return (
+      <Card className="max-w-2xl mx-auto text-center py-12">
+        <AlertTriangle className="w-12 h-12 mx-auto mb-4 text-red-400" />
+        <h2 className="text-xl font-bold mb-2">Failed to load questions</h2>
+        <p className="text-gray-500 dark:text-gray-400 mb-6 text-sm">
+          {questionsErr?.response?.data?.error || questionsErr?.message || "Could not fetch practice questions"}
+        </p>
+        <div className="flex gap-3 justify-center">
+          <Button onClick={() => { setScreen("select"); setConfig(null); }}>
+            Go Back
+          </Button>
+        </div>
+      </Card>
     );
   }
 
