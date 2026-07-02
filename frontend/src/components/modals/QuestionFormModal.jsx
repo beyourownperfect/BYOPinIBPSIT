@@ -90,8 +90,6 @@ export default function QuestionFormModal({ open, onClose, editQuestion }) {
     onError: onMutationError,
   });
 
-  if (!open) return null;
-
   const sectionInfo = SECTIONS[form.section];
   const hasTopics = sectionInfo?.has_topics;
   const topics = hasTopics ? PK_TOPICS[form.section] || [] : [];
@@ -294,6 +292,8 @@ Rules:
 - Ignore page numbers, headers, footers, branding, watermarks
 - Return ONLY valid JSON, no markdown fences, no commentary
 `;
+
+  if (!open) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-8 pb-8">
